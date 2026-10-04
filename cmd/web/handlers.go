@@ -16,6 +16,12 @@ func(app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	snippets, err := app.snippets.Latest()
+	if err != nil{
+		app.serverError(w, err)
+		return
+	}
+
 	//Initialize a slice containing the paths to the 2 files. It's important
 	// to note that the file containing our base template must be the "first"
 	//file in the slice.
@@ -34,9 +40,13 @@ func(app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	data := &templateData{
+		Snippets: snippets,
+	}
+
 	// Use the ExecuteTemplate() method to write the content of the "base"
 	//template as the response body
-	err = ts.ExecuteTemplate(w,"base", nil)
+	err = ts.ExecuteTemplate(w,"base", data)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -59,7 +69,24 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "%+v", snippet)
+	files := []string{
+		"./ui/html/pages/view.tmpl",
+		"./ui/html/partials/nav.tmpl",
+		"./ui/html/base.tmpl",
+	}
+	
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	data := &templateData{Snippet: snippet}
+
+	err = ts.ExecuteTemplate(w, "base", data)
+	if err != nil {
+		app.serverError(w, err)
+	}
 }
 
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
