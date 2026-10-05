@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 
@@ -22,35 +21,7 @@ func(app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Initialize a slice containing the paths to the 2 files. It's important
-	// to note that the file containing our base template must be the "first"
-	//file in the slice.
-	files := []string{
-		"./ui/html/pages/home.tmpl",
-		"./ui/html/partials/nav.tmpl",
-		"./ui/html/base.tmpl",
-	}
-
-	//use the template.ParseFiles() function to read the files and store the 
-	//template in a template set.Notice that we can pass the slice of file
-	//paths as a variadic parameter?
-	ts, err := template.ParseFiles(files...)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
-	data := &templateData{
-		Snippets: snippets,
-	}
-
-	// Use the ExecuteTemplate() method to write the content of the "base"
-	//template as the response body
-	err = ts.ExecuteTemplate(w,"base", data)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
+	app.render(w, http.StatusOK, "home.tmpl", &templateData{Snippets: snippets})
 }
 
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
@@ -69,24 +40,7 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	files := []string{
-		"./ui/html/pages/view.tmpl",
-		"./ui/html/partials/nav.tmpl",
-		"./ui/html/base.tmpl",
-	}
-	
-	ts, err := template.ParseFiles(files...)
-	if err != nil {
-		app.serverError(w, err)
-		return
-	}
-
-	data := &templateData{Snippet: snippet}
-
-	err = ts.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		app.serverError(w, err)
-	}
+	app.render(w, http.StatusOK, "view.tmpl", &templateData{Snippet: snippet})
 }
 
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
